@@ -23,6 +23,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocketFrame;
+import io.vertx.core.http.impl.ws.WebSocketFrameInternal;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -131,6 +132,14 @@ public class ServerWebSocketImpl extends WebSocketImplBase<ServerWebSocketImpl> 
       }
     }
     super.close();
+  }
+
+  @Override
+  void handleFrame(WebSocketFrameInternal frame) {
+    super.handleFrame(frame);
+    if (frame.type() == FrameType.CLOSE) {
+      conn.close();
+    }
   }
 
   @Override

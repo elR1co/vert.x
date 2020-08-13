@@ -142,25 +142,12 @@ abstract class Http1xConnectionBase<S extends WebSocketImplBase<S>> extends Conn
       // make sure everything is flushed out on close
       ByteBuf byteBuf = HttpUtils.generateWSCloseFrameByteBuf(code, reason);
       CloseWebSocketFrame frame = new CloseWebSocketFrame(true, 0, byteBuf);
-      ChannelPromise promise = chctx.newPromise();
-      flush(promise);
-      // close the WebSocket connection by sending a close frame with specified payload.
-      promise.addListener((ChannelFutureListener) future -> {
-        ChannelFuture fut = chctx.writeAndFlush(frame);
-        boolean server = this instanceof Http1xServerConnection;
-        if (server) {
-          fut.addListener((ChannelFutureListener) f -> {
-            ChannelFuture closeFut = chctx.channel().close();
-            if (handler != null) {
-              closeFut.addListener(new ChannelFutureListenerAdapter<>(context, null, handler));
-            }
-          });
-        } else {
-          if (handler != null) {
-            fut.addListener(new ChannelFutureListenerAdapter<>(context, null, handler));
-          }
-        }
-      });
+
+      // close the WebSocket by sending a close frame with specified payload
+      ChannelFuture fut = chctx.writeAndFlush(frame);
+      if (handler != null) {
+        fut.addListener(new ChannelFutureListenerAdapter<>(context, null, handler));
+      }
     }
   }
 
